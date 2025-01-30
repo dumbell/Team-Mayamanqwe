@@ -208,7 +208,7 @@
 
             if (rantText !== "") {
                 try {
-                    const response = await fetch('http://localhost:5000/api/rants', {
+                    const response = await fetch('http://localhost:3000/api/rants', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ text: rantText })
@@ -228,7 +228,7 @@
         // Function to get the latest rants from the backend
         const renderRants = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/rants');
+                const response = await fetch('http://localhost:3000/api/rants');
                 const rants = await response.json();
 
                 rantList.innerHTML = ""; // Clear the current list of rants
