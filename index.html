@@ -198,7 +198,7 @@
     </footer>
 
     <script>
- const rantInput = document.getElementById('rant-input');
+    const rantInput = document.getElementById('rant-input');
         const postRantBtn = document.getElementById('post-rant-btn');
         const rantList = document.getElementById('rant-list-ul');
 
@@ -210,10 +210,12 @@
 
             if (rantText !== "") {
                 let rants = JSON.parse(localStorage.getItem("rants")) || []; // Get existing rants from localStorage
-        const newRant = {
-            text: rantText,
-            timestamp: new Date().toLocaleString(),
-            likes: 0
+                const newRant = {
+                    text: rantText,
+                    timestamp: new Date().toLocaleString(),
+                    likes: 0
+                };
+
                 if (editingRant) {
                     // Update the existing rant
                     editingRant.textContent = rantText; // Update the text content of the rant
@@ -229,57 +231,19 @@
                         <span class="like-count">0 Likes</span>
                     `;
                     editingRant = null;
-            // Add the new rant to the rants array
-        rants.push(newRant);
 
-        // Save the updated rants back to localStorage
-        localStorage.setItem("rants", JSON.stringify(rants));
-
-        // Update the UI
-        renderRants();
-        rantInput.value = ""; // Clear the input field
+                    // Save the updated rants back to localStorage
+                    localStorage.setItem("rants", JSON.stringify(rants));
+                    renderRants();
                 } else {
-            alert("Please write something before posting!");
-                    // Create a new rant
-                    const rantItem = document.createElement("li");
-                    rantItem.textContent = rantText; // Set the text of the rant
+                    // Add the new rant to the rants array
+                    rants.push(newRant);
 
-                    // Add timestamp to the rant
-                    const timestamp = document.createElement("span");
-                    timestamp.textContent = ` - ${new Date().toLocaleString()}`;
-                    rantItem.appendChild(timestamp);
+                    // Save the updated rants back to localStorage
+                    localStorage.setItem("rants", JSON.stringify(rants));
 
-                    // Add buttons for editing, deleting, and liking
-                    const buttons = document.createElement("div");
-                    buttons.classList.add("rant-buttons");
-
-                    const editButton = document.createElement("button");
-                    editButton.classList.add("edit-btn");
-                    editButton.textContent = "Edit";
-                    editButton.onclick = (event) => editRant(event);
-
-                    const deleteButton = document.createElement("button");
-                    deleteButton.classList.add("delete-btn");
-                    deleteButton.textContent = "Delete";
-                    deleteButton.onclick = (event) => deleteRant(event);
-
-                    const likeButton = document.createElement("button");
-                    likeButton.classList.add("like-btn");
-                    likeButton.innerHTML = "&#9825;"; // Empty heart
-                    likeButton.onclick = (event) => toggleLike(event);
-
-                    const likeCount = document.createElement("span");
-                    likeCount.classList.add("like-count");
-                    likeCount.textContent = "0 Likes"; // Initial like count
-
-                    buttons.appendChild(editButton);
-                    buttons.appendChild(deleteButton);
-                    buttons.appendChild(likeButton);
-                    buttons.appendChild(likeCount);
-                    rantItem.appendChild(buttons);
-
-                    // Add the rant to the list
-                    rantList.appendChild(rantItem);
+                    // Update the UI
+                    renderRants();
                 }
 
                 // Clear the input field
@@ -288,39 +252,77 @@
                 alert("Please write something before posting!");
             }
         }
-        
-function renderRants() {
-    let rants = JSON.parse(localStorage.getItem("rants")) || []; // Get existing rants from localStorage
-    rantList.innerHTML = ""; // Clear the current list of rants
 
-    rants.forEach((rant, index) => {
-        const rantItem = document.createElement("li");
-        rantItem.textContent = `${rant.text} - ${rant.timestamp}`;
+        // Function to render all rants from localStorage
+        function renderRants() {
+            let rants = JSON.parse(localStorage.getItem("rants")) || [];
+            rantList.innerHTML = ""; // Clear the current list of rants
+
+            rants.forEach((rant, index) => {
+                const rantItem = document.createElement("li");
+                rantItem.textContent = `${rant.text} - ${rant.timestamp}`;
+
+                // Add buttons for editing, deleting, and liking
+                const buttons = document.createElement("div");
+                buttons.classList.add("rant-buttons");
+
+                const editButton = document.createElement("button");
+                editButton.classList.add("edit-btn");
+                editButton.textContent = "Edit";
+                editButton.onclick = (event) => editRant(event, index);
+
+                const deleteButton = document.createElement("button");
+                deleteButton.classList.add("delete-btn");
+                deleteButton.textContent = "Delete";
+                deleteButton.onclick = (event) => deleteRant(event, index);
+
+                const likeButton = document.createElement("button");
+                likeButton.classList.add("like-btn");
+                likeButton.innerHTML = "&#9825;"; // Empty heart
+                likeButton.onclick = (event) => toggleLike(event, index);
+
+                const likeCount = document.createElement("span");
+                likeCount.classList.add("like-count");
+                likeCount.textContent = `${rant.likes} Likes`; // Initial like count
+
+                buttons.appendChild(editButton);
+                buttons.appendChild(deleteButton);
+                buttons.appendChild(likeButton);
+                buttons.appendChild(likeCount);
+                rantItem.appendChild(buttons);
+
+                // Add the rant to the list
+                rantList.appendChild(rantItem);
+            });
+        }
 
         // Edit a rant
-        function editRant(event) {
-            const rantItem = event.target.closest("li");
-            rantInput.value = rantItem.textContent.replace(/ - .*$/, "").trim(); // Set the input value to the rant text
-            editingRant = rantItem;
+        function editRant(event, index) {
+            const rants = JSON.parse(localStorage.getItem("rants"));
+            rantInput.value = rants[index].text; // Set the input value to the rant text
+            editingRant = event.target.closest("li");
 
-            // Remove edit and delete buttons while editing
-            rantItem.querySelector('.rant-buttons').innerHTML = ` 
+            // Remove the edit and delete buttons while editing
+            editingRant.querySelector('.rant-buttons').innerHTML = ` 
                 <button class="edit-btn" disabled>Edit</button>
                 <button class="delete-btn" disabled>Delete</button>
             `;
         }
 
         // Delete a rant
-        function deleteRant(event) {
-            const rantItem = event.target.closest("li");
-            rantItem.remove();
+        function deleteRant(event, index) {
+            let rants = JSON.parse(localStorage.getItem("rants"));
+            rants.splice(index, 1); // Remove the rant at the given index
+            localStorage.setItem("rants", JSON.stringify(rants)); // Save the updated list
+            renderRants(); // Re-render the rants
         }
 
         // Toggle the like state (heart button)
-        function toggleLike(event) {
+        function toggleLike(event, index) {
+            let rants = JSON.parse(localStorage.getItem("rants"));
             const likeButton = event.target;
             const likeCountSpan = likeButton.nextElementSibling; // Get the like count span next to the button
-            let likeCount = parseInt(likeCountSpan.textContent.split(' ')[0]);
+            let likeCount = rants[index].likes;
 
             likeButton.classList.toggle("liked");
 
@@ -334,18 +336,15 @@ function renderRants() {
 
             // Update the like count text
             likeCountSpan.textContent = `${likeCount} Likes`;
+            rants[index].likes = likeCount; // Update the likes in localStorage
+            localStorage.setItem("rants", JSON.stringify(rants)); // Save the updated rants
         }
 
         // Event listener for posting the rant
         postRantBtn.addEventListener('click', postRant);
 
-        // Optional: Allow pressing "Enter" to post a rant
-        rantInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                postRant();
-            }
-            // Load and render rants when the page loads
-window.onload = renderRants;
+        // Render rants on page load
+        window.onload = renderRants;
         });
 
         // Get the elements
