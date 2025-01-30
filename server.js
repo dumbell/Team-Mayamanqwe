@@ -1,37 +1,41 @@
+// index.js (or your server file)
 const express = require('express');
-const path = require('path');
-const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
-
 const app = express();
-const port = 3000;
+const port = 5000;
 
-// Use middleware to parse JSON
-app.use(bodyParser.json());
+// In-memory store for rants (you could use a database in production)
+let rants = [];
 
-// Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/rants', { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('Error connecting to MongoDB:', err));
+// Middleware to parse JSON requests
+app.use(express.json());
 
-// Define Rant Schema
-const rantSchema = new mongoose.Schema({
-  text: String,
-  timestamp: { type: Date, default: Date.now },
-  likes: { type: Number, default: 0 }
+// POST /api/rants - Store new rant
+app.post('/api/rants', (req, res) => {
+    const { text } = req.body;
+    const timestamp = new Date().toISOString();
+    const newRant = { text, timestamp, likes: 0 };
+    
+    // Add the new rant to the beginning of the list
+    rants.unshift(newRant);
+    
+    // If more than 3 rants, remove the oldest
+    if (rants.length > 3) {
+        rants.pop();
+    }
+
+    res.json(newRant); // Send the added rant back as response
 });
-// Create a Rant Model
-const Rant = mongoose.model('Rant', rantSchema);
 
-// POST /api/rants - Create a new rant
-app.post('/api/rants', async (req, res) => {
-  const { text } = req.body;
+// GET /api/rants - Get the latest 3 rants
+app.get('/api/rants', (req, res) => {
+    res.json(rants);
+});
 
-  if (!text || text.trim() === "") {
-    return res.status(400).json({ error: "Rant text is required" });
-  }
+// Start server
+app.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
+});
 
-  try {
     const newRant = new Rant({ text });
     await newRant.save();
 
