@@ -209,6 +209,11 @@
             const rantText = rantInput.value.trim(); // Get the input value and trim extra spaces
 
             if (rantText !== "") {
+                let rants = JSON.parse(localStorage.getItem("rants")) || []; // Get existing rants from localStorage
+        const newRant = {
+            text: rantText,
+            timestamp: new Date().toLocaleString(),
+            likes: 0
                 if (editingRant) {
                     // Update the existing rant
                     editingRant.textContent = rantText; // Update the text content of the rant
@@ -224,7 +229,17 @@
                         <span class="like-count">0 Likes</span>
                     `;
                     editingRant = null;
+            // Add the new rant to the rants array
+        rants.push(newRant);
+
+        // Save the updated rants back to localStorage
+        localStorage.setItem("rants", JSON.stringify(rants));
+
+        // Update the UI
+        renderRants();
+        rantInput.value = ""; // Clear the input field
                 } else {
+            alert("Please write something before posting!");
                     // Create a new rant
                     const rantItem = document.createElement("li");
                     rantItem.textContent = rantText; // Set the text of the rant
@@ -273,6 +288,14 @@
                 alert("Please write something before posting!");
             }
         }
+        
+function renderRants() {
+    let rants = JSON.parse(localStorage.getItem("rants")) || []; // Get existing rants from localStorage
+    rantList.innerHTML = ""; // Clear the current list of rants
+
+    rants.forEach((rant, index) => {
+        const rantItem = document.createElement("li");
+        rantItem.textContent = `${rant.text} - ${rant.timestamp}`;
 
         // Edit a rant
         function editRant(event) {
@@ -321,6 +344,8 @@
             if (e.key === 'Enter') {
                 postRant();
             }
+            // Load and render rants when the page loads
+window.onload = renderRants;
         });
 
         // Get the elements
