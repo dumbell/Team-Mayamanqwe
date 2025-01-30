@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -198,7 +197,7 @@
     </footer>
 
     <script>
-    const rantInput = document.getElementById('rant-input');
+        const rantInput = document.getElementById('rant-input');
         const postRantBtn = document.getElementById('post-rant-btn');
         const rantList = document.getElementById('rant-list-ul');
 
@@ -215,27 +214,22 @@
                     timestamp: new Date().toLocaleString(),
                     likes: 0
                 };
-
+                
                 if (editingRant) {
                     // Update the existing rant
                     editingRant.textContent = rantText; // Update the text content of the rant
                     const timestamp = document.createElement("span");
-                    timestamp.textContent = ` - ${new Date().toLocaleString()}`;
+                    timestamp.textContent = `- ${new Date().toLocaleString()}`;
                     editingRant.appendChild(timestamp);
 
                     // Reset the editing state
-                    editingRant.querySelector('.rant-buttons').innerHTML = ` 
-                        <button class="edit-btn" onclick="editRant(event)">Edit</button>
+                    editingRant.querySelector('.rant-buttons').innerHTML =  
+                        `<button class="edit-btn" onclick="editRant(event)">Edit</button>
                         <button class="delete-btn" onclick="deleteRant(event)">Delete</button>
                         <button class="like-btn" onclick="toggleLike(event)">&#9825;</button>
-                        <span class="like-count">0 Likes</span>
-                    `;
+                        <span class="like-count">0 Likes</span>`;
                     editingRant = null;
 
-                    // Save the updated rants back to localStorage
-                    localStorage.setItem("rants", JSON.stringify(rants));
-                    renderRants();
-                } else {
                     // Add the new rant to the rants array
                     rants.push(newRant);
 
@@ -244,6 +238,49 @@
 
                     // Update the UI
                     renderRants();
+                    rantInput.value = ""; // Clear the input field
+                } else {
+                    alert("Please write something before posting!");
+                    // Create a new rant
+                    const rantItem = document.createElement("li");
+                    rantItem.textContent = rantText; // Set the text of the rant
+
+                    // Add timestamp to the rant
+                    const timestamp = document.createElement("span");
+                    timestamp.textContent = `- ${new Date().toLocaleString()}`;
+                    rantItem.appendChild(timestamp);
+
+                    // Add buttons for editing, deleting, and liking
+                    const buttons = document.createElement("div");
+                    buttons.classList.add("rant-buttons");
+
+                    const editButton = document.createElement("button");
+                    editButton.classList.add("edit-btn");
+                    editButton.textContent = "Edit";
+                    editButton.onclick = (event) => editRant(event);
+
+                    const deleteButton = document.createElement("button");
+                    deleteButton.classList.add("delete-btn");
+                    deleteButton.textContent = "Delete";
+                    deleteButton.onclick = (event) => deleteRant(event);
+
+                    const likeButton = document.createElement("button");
+                    likeButton.classList.add("like-btn");
+                    likeButton.innerHTML = "&#9825;"; // Empty heart
+                    likeButton.onclick = (event) => toggleLike(event);
+
+                    const likeCount = document.createElement("span");
+                    likeCount.classList.add("like-count");
+                    likeCount.textContent = "0 Likes"; // Initial like count
+
+                    buttons.appendChild(editButton);
+                    buttons.appendChild(deleteButton);
+                    buttons.appendChild(likeButton);
+                    buttons.appendChild(likeCount);
+                    rantItem.appendChild(buttons);
+
+                    // Add the rant to the list
+                    rantList.appendChild(rantItem);
                 }
 
                 // Clear the input field
@@ -253,117 +290,72 @@
             }
         }
 
-        // Function to render all rants from localStorage
         function renderRants() {
-            let rants = JSON.parse(localStorage.getItem("rants")) || [];
+            let rants = JSON.parse(localStorage.getItem("rants")) || []; // Get existing rants from localStorage
             rantList.innerHTML = ""; // Clear the current list of rants
 
-            rants.forEach((rant, index) => {
+            rants.forEach((rant) => {
                 const rantItem = document.createElement("li");
                 rantItem.textContent = `${rant.text} - ${rant.timestamp}`;
 
-                // Add buttons for editing, deleting, and liking
-                const buttons = document.createElement("div");
-                buttons.classList.add("rant-buttons");
+                // Edit a rant
+                function editRant(event) {
+                    const rantItem = event.target.closest("li");
+                    rantInput.value = rantItem.textContent.replace(/ - .*$/, "").trim(); // Set the input value to the rant text
+                    editingRant = rantItem;
 
-                const editButton = document.createElement("button");
-                editButton.classList.add("edit-btn");
-                editButton.textContent = "Edit";
-                editButton.onclick = (event) => editRant(event, index);
+                    // Remove edit and delete buttons while editing
+                    rantItem.querySelector('.rant-buttons').innerHTML =  
+                        `<button class="edit-btn" disabled>Edit</button>
+                        <button class="delete-btn" disabled>Delete</button>`;
+                }
 
-                const deleteButton = document.createElement("button");
-                deleteButton.classList.add("delete-btn");
-                deleteButton.textContent = "Delete";
-                deleteButton.onclick = (event) => deleteRant(event, index);
+                // Delete a rant
+                function deleteRant(event) {
+                    const rantItem = event.target.closest("li");
+                    rantItem.remove();
+                }
 
-                const likeButton = document.createElement("button");
-                likeButton.classList.add("like-btn");
-                likeButton.innerHTML = "&#9825;"; // Empty heart
-                likeButton.onclick = (event) => toggleLike(event, index);
+                // Toggle the like state (heart button)
+                function toggleLike(event) {
+                    const likeButton = event.target;
+                    const likeCountSpan = likeButton.nextElementSibling; // Get the like count span next to the button
+                    let likeCount = parseInt(likeCountSpan.textContent.split(' ')[0]);
 
-                const likeCount = document.createElement("span");
-                likeCount.classList.add("like-count");
-                likeCount.textContent = `${rant.likes} Likes`; // Initial like count
+                    likeButton.classList.toggle("liked");
 
-                buttons.appendChild(editButton);
-                buttons.appendChild(deleteButton);
-                buttons.appendChild(likeButton);
-                buttons.appendChild(likeCount);
-                rantItem.appendChild(buttons);
+                    if (likeButton.classList.contains("liked")) {
+                        likeButton.innerHTML = "&#9829;"; // Filled heart
+                        likeCount++;
+                    } else {
+                        likeButton.innerHTML = "&#9825;"; // Empty heart
+                        likeCount--;
+                    }
 
-                // Add the rant to the list
+                    // Update the like count text
+                    likeCountSpan.textContent = `${likeCount} Likes`;
+                }
+
+                // Add the rant item to the list
                 rantList.appendChild(rantItem);
             });
-        }
-
-        // Edit a rant
-        function editRant(event, index) {
-            const rants = JSON.parse(localStorage.getItem("rants"));
-            rantInput.value = rants[index].text; // Set the input value to the rant text
-            editingRant = event.target.closest("li");
-
-            // Remove the edit and delete buttons while editing
-            editingRant.querySelector('.rant-buttons').innerHTML = ` 
-                <button class="edit-btn" disabled>Edit</button>
-                <button class="delete-btn" disabled>Delete</button>
-            `;
-        }
-
-        // Delete a rant
-        function deleteRant(event, index) {
-            let rants = JSON.parse(localStorage.getItem("rants"));
-            rants.splice(index, 1); // Remove the rant at the given index
-            localStorage.setItem("rants", JSON.stringify(rants)); // Save the updated list
-            renderRants(); // Re-render the rants
-        }
-
-        // Toggle the like state (heart button)
-        function toggleLike(event, index) {
-            let rants = JSON.parse(localStorage.getItem("rants"));
-            const likeButton = event.target;
-            const likeCountSpan = likeButton.nextElementSibling; // Get the like count span next to the button
-            let likeCount = rants[index].likes;
-
-            likeButton.classList.toggle("liked");
-
-            if (likeButton.classList.contains("liked")) {
-                likeButton.innerHTML = "&#9829;"; // Filled heart
-                likeCount++;
-            } else {
-                likeButton.innerHTML = "&#9825;"; // Empty heart
-                likeCount--;
-            }
-
-            // Update the like count text
-            likeCountSpan.textContent = `${likeCount} Likes`;
-            rants[index].likes = likeCount; // Update the likes in localStorage
-            localStorage.setItem("rants", JSON.stringify(rants)); // Save the updated rants
         }
 
         // Event listener for posting the rant
         postRantBtn.addEventListener('click', postRant);
 
-        // Render rants on page load
-        window.onload = renderRants;
+        // Optional: Allow pressing "Enter" to post a rant
+        rantInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                postRant();
+            }
         });
 
-        // Get the elements
-        const emergencyLink = document.getElementById('emergency-contacts-link');
-        const emergencyContacts = document.getElementById('emergency-contacts');
-        const closeButton = document.getElementById('close-contacts-btn');
-        const newsList = document.getElementById('news-list');
-        emergencyLink.addEventListener('click', function (e) {
-                e.preventDefault();
-                emergencyContacts.style.display = 'block';
-            });
-        closeButton.addEventListener('click', function () {
-            emergencyContacts.style.display = 'none';})
-        // Function to update the news content by fetching from an external API
-        
+        // Initialize the news section by displaying the first set of news
         function updateNews() {
             const apiKey = 'b7ba64372e9a416a93b80d2d03df5d6a'; // Your NewsAPI key
             const url = `https://newsapi.org/v2/top-headlines?country=us&apiKey=${apiKey}`; // US-based headlines (change country if needed)
-newsList.innerHTML = ""
+            
             fetch(url)
                 .then(response => response.json()) // Parse the response as JSON
                 .then(data => {
@@ -393,15 +385,21 @@ newsList.innerHTML = ""
         setInterval(updateNews, 10000);
 
         // Show the emergency contacts section when the link is clicked
+        const emergencyLink = document.getElementById('emergency-contacts-link');
+        const emergencyContacts = document.getElementById('emergency-contacts');
+        const closeButton = document.getElementById('close-contacts-btn');
+
         emergencyLink.addEventListener('click', function (e) {
-            e.preventDefault(); // Prevent default link behavior
-            emergencyContacts.style.display = 'block'; // Show the section
+            e.preventDefault();
+            emergencyContacts.style.display = 'block';
         });
 
-        // Close the emergency contacts section when the close button is clicked
         closeButton.addEventListener('click', function () {
             emergencyContacts.style.display = 'none'; // Hide the section
         });
+
+        // Load and render rants when the page loads
+        window.onload = renderRants;
 
         // Initialize the news section by displaying the first set of news
         updateNews();
