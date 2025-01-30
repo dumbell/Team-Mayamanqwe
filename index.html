@@ -3,45 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team Reklamo</title>
+    <title>Team Mayaman</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            background-color: white;
             color: #333;
             margin: 0;
             padding: 0;
         }
-
         header {
             background-color: #1a1a1a;
             color: white;
             padding: 15px;
             text-align: center;
         }
-
+        nav {
+            background-color: #f4f4f4;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+        }
+        nav a {
+            margin: 0 15px;
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+        }
         section {
             padding: 20px;
         }
-
+        footer {
+            background-color: #1a1a1a;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
         #rant-section {
-            background-color: #fff;
+            margin-top: 20px;
+            background-color: #f9f9f9;
             padding: 20px;
             border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
         }
 
-        textarea {
+        #rant-input {
             width: 100%;
             padding: 10px;
-            font-size: 14px;
-            border-radius: 5px;
             border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
             margin-bottom: 10px;
         }
 
-        button {
+        #post-rant-btn {
             padding: 10px 20px;
             background-color: #007bff;
             color: white;
@@ -50,136 +67,120 @@
             cursor: pointer;
         }
 
-        button:hover {
+        #post-rant-btn:hover {
             background-color: #0056b3;
         }
 
         #rant-list {
+            margin-top: 20px;
+        }
+
+        #rant-list-ul {
             list-style-type: none;
             padding: 0;
         }
 
-        #rant-list li {
+        #rant-list-ul li {
             background-color: #fff;
             border: 1px solid #ddd;
-            padding: 15px;
+            padding: 10px;
             margin: 10px 0;
             border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
-        .like-btn {
-            font-size: 20px;
-            color: #ccc;
-            cursor: pointer;
-            background: none;
-            border: none;
-        }
-
-        .liked {
-            color: #e74c3c; /* Red color for liked state */
-        }
-
-        .like-count {
-            font-size: 14px;
-            color: #333;
-            margin-left: 10px;
+        #rant-list-ul li span {
+            font-size: 12px;
+            color: #777;
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Team Reklamo</h1>
-        <p>Share your thoughts with us!</p>
+        <h1>Team Mayaman</h1>
+        <p>We are rich but we are broke for you!</p>
     </header>
 
-    <section id="rant-section">
-        <h2>Post a Rant</h2>
-        <textarea id="rant-input" placeholder="Share your thoughts..." rows="4"></textarea><br>
-        <button id="post-rant-btn">Post Rant</button>
-    </section>
+    <nav>
+        <a href="#dashboard">Dashboard</a>
+        <a href="#resources">Resources</a>
+        <a href="#about">About</a>
+    </nav>
 
-    <section id="rant-list-section">
-        <h2>Latest Rants</h2>
-        <ul id="rant-list">
-            <!-- Rants will be inserted here -->
-        </ul>
+    <section id="dashboard">
+        <h2>Reklamo Area</h2>
+        <p>Welcome to the Team Reklamos! Stay updated with the latest rants.</p>
+    
+        <!-- Rant Input Area -->
+        <div id="rant-section">
+            <h3>Post a Rant</h3>
+            <textarea id="rant-input" placeholder="Share your thoughts..." rows="4" cols="50"></textarea><br><br>
+            <button id="post-rant-btn">Post Rant</button>
+        </div>
+    
+        <!-- Display Rants -->
+        <div id="rant-list">
+            <h3>Recent Rants</h3>
+            <ul id="rant-list-ul">
+                <!-- Rants will be added here -->
+            </ul>
+        </div>
     </section>
 
     <footer>
-        <p>© 2025 Team Reklamo | All Rights Reserved</p>
+        <p>© 2025 Team Department | All Rights Reserved</p>
     </footer>
 
     <script>
         const rantInput = document.getElementById('rant-input');
         const postRantBtn = document.getElementById('post-rant-btn');
-        const rantList = document.getElementById('rant-list');
+        const rantList = document.getElementById('rant-list-ul');
 
-        // Function to post a new rant to the backend
-        const postRant = async () => {
-            const rantText = rantInput.value.trim(); // Get the input value and trim extra spaces
-
-            if (rantText !== "") {
-                try {
-                    const response = await fetch('http://localhost:5000/api/rants', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ text: rantText })
+        // Fetch latest rants when the page loads
+        function getRants() {
+            fetch('/api/rants')
+                .then(response => response.json())
+                .then(data => {
+                    rantList.innerHTML = '';
+                    data.forEach(rant => {
+                        const rantItem = document.createElement('li');
+                        rantItem.innerHTML = `${rant.text} <span>${rant.timestamp}</span>`;
+                        rantList.appendChild(rantItem);
                     });
+                })
+                .catch(error => console.error('Error fetching rants:', error));
+        }
 
-                    const data = await response.json(); // Get the response as JSON
-                    if (response.ok) {
-                        renderRants(); // Re-render the rants after posting
-                        rantInput.value = ""; // Clear the input field
-                    } else {
-                        console.error('Failed to post rant:', data);
-                        alert('Failed to post rant.');
-                    }
-                } catch (error) {
-                    console.error('Error posting rant:', error);
-                    alert('Error posting rant. Please try again later.');
-                }
+        // Post a new rant
+        function postRant() {
+            const rantText = rantInput.value.trim();
+            if (rantText !== "") {
+                fetch('/api/rants', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text: rantText })
+                })
+                .then(response => response.json())
+                .then(() => {
+                    rantInput.value = '';
+                    getRants();  // Refresh the list of rants
+                })
+                .catch(error => console.error('Error posting rant:', error));
             } else {
-                alert("Please write something before posting!");
+                alert('Please write something before posting!');
             }
-        };
+        }
 
-        // Function to get the latest rants from the backend
-        const renderRants = async () => {
-            try {
-                const response = await fetch('http://localhost:5000/api/rants');
-                const rants = await response.json();
-
-                rantList.innerHTML = ""; // Clear the current list of rants
-
-                rants.forEach((rant) => {
-                    const rantItem = document.createElement("li");
-                    rantItem.textContent = `${rant.text} - ${new Date(rant.timestamp).toLocaleString()}`;
-
-                    // Add the rant to the list
-                    rantList.appendChild(rantItem);
-                });
-            } catch (error) {
-                console.error('Error fetching rants:', error);
-            }
-        };
-
-        // Event listener for posting the rant
         postRantBtn.addEventListener('click', postRant);
 
-        // Optional: Allow pressing "Enter" to post a rant
-        rantInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                postRant();
-            }
-        });
-
-        // Load rants when the page loads
-        window.onload = renderRants;
+        // Initialize the rants list
+        window.onload = getRants;
     </script>
 
 </body>
 </html>
+
 
 
